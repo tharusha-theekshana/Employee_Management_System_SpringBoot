@@ -11,18 +11,23 @@ import java.util.Date;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(uniqueConstraints=@UniqueConstraint(columnNames = "email"))
 public class Employee {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @Column(nullable = false)
     private String firstName;
 
+    @Column(nullable = false)
     private String lastName;
 
+    @Column(unique=true , nullable=false)
     private String email;
 
+    @Column(nullable = false)
     @Temporal(TemporalType.DATE)
     private Date birthday;
 
