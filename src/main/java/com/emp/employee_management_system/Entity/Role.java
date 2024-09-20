@@ -14,6 +14,10 @@ import java.util.Set;
 @NoArgsConstructor
 public class Role {
 
+    public Role(RoleName name) {
+        this.name = name;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -23,7 +27,5 @@ public class Role {
 
     @ManyToMany(mappedBy = "roles")
     private Set<User> users;
-
-
 }
 
