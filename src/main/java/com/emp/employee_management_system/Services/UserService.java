@@ -104,7 +104,7 @@ public class UserService implements UserServiceImpl {
 
             return ResponseHandler.generateResponse(
                     "User login successfully!",
-                    HttpStatus.NOT_FOUND,
+                    HttpStatus.OK,
                     jwtToken
             );
 

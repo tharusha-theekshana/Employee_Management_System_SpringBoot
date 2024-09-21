@@ -12,6 +12,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,8 +21,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.time.Period;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -330,11 +331,23 @@ public class EmployeeService implements EmployeeServiceImpl {
         return lowerCaseFileName.endsWith(".jpg") || lowerCaseFileName.endsWith(".jpeg") || lowerCaseFileName.endsWith(".png");
     }
 
-    //Age calculation in days method
+
+    @Scheduled(cron = "0 0 0 * * *")  // This runs every midnight
+    public void updateEmployeeAges() {
+        List<Employee> employees = employeeRepo.findAll();
+        for (Employee employee : employees) {
+            long ageInDays = calculateAgeInDays(employee.getBirthday());
+            employee.setCurrentAgeInDays(ageInDays);
+        }
+        employeeRepo.saveAll(employees);
+    }
+
     private long calculateAgeInDays(Date birthday) {
-        LocalDate birthDate = birthday.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        LocalDate currentDate = LocalDate.now();
-        return Period.between(birthDate, currentDate).getDays() +
-                Period.between(birthDate, currentDate).getYears() * 365L;
+        LocalDate birthDate = convertToLocalDate(birthday);
+        return ChronoUnit.DAYS.between(birthDate, LocalDate.now());
+    }
+
+    private LocalDate convertToLocalDate(Date date) {
+        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 }
