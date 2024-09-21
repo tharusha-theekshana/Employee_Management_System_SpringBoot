@@ -1,6 +1,5 @@
 package com.emp.employee_management_system.Entity;
 
-import com.emp.employee_management_system.Utils.Enum.RoleName;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,16 +13,15 @@ import java.util.Set;
 @NoArgsConstructor
 public class Role {
 
-    public Role(RoleName name) {
-        this.name = name;
+    public Role(String name) {
+        this.roleName = name;
     }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Enumerated(EnumType.STRING)
-    private RoleName name;
+    private String roleName;
 
     @ManyToMany(mappedBy = "roles")
     private Set<User> users;
