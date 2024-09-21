@@ -12,7 +12,7 @@ public interface UserRepo extends JpaRepository<User,Long> {
 
     User findByUsername(String username);
 
-    Optional<User> findById(Long id);
+    User findByEmail(String email);
 
     @Query("SELECT u.id, u.username, u.email, r.roleName FROM User u JOIN u.roles r WHERE u.id = :id")
     List<Object[]> findUserWithRoles(@Param("id") Long id);

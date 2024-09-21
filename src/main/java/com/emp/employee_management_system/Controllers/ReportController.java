@@ -18,6 +18,7 @@ public class ReportController {
     @Autowired
     private ReportService reportService;
 
+    //Jasper report generate
     @GetMapping("/{format}")
     public ResponseEntity<Object> generateReport(@PathVariable String format) throws JRException, FileNotFoundException {
         return reportService.exportReport(format);

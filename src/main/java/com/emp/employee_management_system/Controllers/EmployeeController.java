@@ -36,6 +36,7 @@ public class EmployeeController {
         return employeeService.saveEmployee(employeeDto);
     }
 
+    //Can access ADMIN users only
     @DeleteMapping("/{id}")
     ResponseEntity<Object> deleteEmployee(@PathVariable Long id,@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader) {
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {

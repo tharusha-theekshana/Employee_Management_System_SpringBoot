@@ -57,7 +57,7 @@ public class EmployeeService implements EmployeeServiceImpl {
 
         } catch (Exception e) {
             return ResponseHandler.generateResponse(
-                    "An error occurred while retrieving employees: " + e.getMessage(),
+                    "Something went wrong ! " + e.getMessage(),
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     null
             );
@@ -73,7 +73,7 @@ public class EmployeeService implements EmployeeServiceImpl {
                 return ResponseHandler.generateResponse(
                         "Employee not found with email: " + email,
                         HttpStatus.NOT_FOUND,
-                        ""
+                        null
                 );
             }
 
@@ -330,7 +330,6 @@ public class EmployeeService implements EmployeeServiceImpl {
         String lowerCaseFileName = fileName.toLowerCase();
         return lowerCaseFileName.endsWith(".jpg") || lowerCaseFileName.endsWith(".jpeg") || lowerCaseFileName.endsWith(".png");
     }
-
 
     @Scheduled(cron = "0 0 0 * * *")  // This runs every midnight
     public void updateEmployeeAges() {

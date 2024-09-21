@@ -15,6 +15,7 @@ public class DataInitializer implements CommandLineRunner {
     final static String user = "USER";
     final static String admin = "ADMIN";
 
+    //Initialize roles [ USER & ADMIN ] when project start
     @Override
     public void run(String... args) throws Exception {
         if (roleRepo.findByRoleName(user).isEmpty()) {
