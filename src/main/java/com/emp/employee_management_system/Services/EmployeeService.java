@@ -8,10 +8,17 @@ import com.emp.employee_management_system.Utils.Response.ResponseHandler;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.ZoneId;
@@ -177,21 +184,151 @@ public class EmployeeService implements EmployeeServiceImpl {
                     HttpStatus.OK,
                     updatedEmployee
             );
-        } catch (DataIntegrityViolationException ex) {
+        } catch (DataIntegrityViolationException e) {
             return ResponseHandler.generateResponse(
                     "Email already exists. Please use a different email address.",
                     HttpStatus.CONFLICT,
                     null
             );
-        } catch (Exception ex) {
+        } catch (Exception e) {
             return ResponseHandler.generateResponse(
-                    "An error occurred while updating the employee: " + ex.getMessage(),
+                    "An error occurred while updating the employee: " + e.getMessage(),
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     null
             );
         }
     }
 
+    @Override
+    public ResponseEntity<Object> uploadProfilePicture(Long id, MultipartFile file) {
+        try{
+            Optional<Employee> existingEmployee = employeeRepo.findById(id);
+
+            if (existingEmployee.isEmpty()) {
+                return ResponseHandler.generateResponse(
+                        "Employee not found with ID: " + id,
+                        HttpStatus.NOT_FOUND,
+                        null
+                );
+            }
+
+            if (file.isEmpty()) {
+                return ResponseHandler.generateResponse(
+                        "No file uploaded",
+                        HttpStatus.BAD_REQUEST,
+                        null
+                );
+            }
+
+            boolean isImage = checkFileIsImage(file.getOriginalFilename());
+            if(!isImage){
+                return ResponseHandler.generateResponse(
+                        "Only JPG, JPEG, and PNG files are allowed",
+                        HttpStatus.BAD_REQUEST,
+                        null
+                );
+            }
+
+            Path uploadsDir = Paths.get(System.getProperty("user.dir"), "uploads");
+            System.out.println("Uploads directory: " + uploadsDir.toAbsolutePath()); // Print uploads directory
+            if (!Files.exists(uploadsDir)) {
+                Files.createDirectories(uploadsDir); // Create the uploads directory if it doesn't exist
+            }
+
+            if (existingEmployee.get().getProfilePicturePath() != null) {
+                File oldFile = new File(existingEmployee.get().getProfilePicturePath());
+                if (oldFile.exists()) {
+                    oldFile.delete();
+                }
+            }
+
+            String originalFileName = file.getOriginalFilename();
+            String fileExtension = originalFileName.substring(originalFileName.lastIndexOf('.'));
+
+            // Create a new file name
+            String newFileName = id + "_" + existingEmployee.get().getFirstName() + "_" + existingEmployee.get().getLastName() + fileExtension;
+
+            // Save the new profile picture
+            String filePath = uploadsDir.resolve(newFileName).toString(); // Use resolved path
+            File dest = new File(filePath);
+            file.transferTo(dest);
+
+            // Update employee's profile picture path
+            existingEmployee.get().setProfilePicturePath(filePath);
+            employeeRepo.save(existingEmployee.get());
+
+            return ResponseHandler.generateResponse(
+                    "Profile picture uploaded successfully!",
+                    HttpStatus.OK,
+                    existingEmployee.get()
+            );
+        }catch (Exception e){
+            return ResponseHandler.generateResponse(
+                    "An error occurred while uploading profile picture : " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    null
+            );
+        }
+    }
+
+    @Override
+    public ResponseEntity<Object> downloadProfilePicture(Long id) {
+        try {
+            Optional<Employee> existingEmployee = employeeRepo.findById(id);
+
+            if (existingEmployee.isEmpty()) {
+                return ResponseHandler.generateResponse(
+                        "Employee not found with ID: " + id,
+                        HttpStatus.NOT_FOUND,
+                        null
+                );
+            }
+
+            String profilePicturePath = existingEmployee.get().getProfilePicturePath();
+
+            if (profilePicturePath == null || profilePicturePath.isEmpty()) {
+                return ResponseHandler.generateResponse(
+                        "No profile picture found for employee with ID: " + id,
+                        HttpStatus.NOT_FOUND,
+                        null
+                );
+            }
+
+            File file = new File(profilePicturePath);
+            if (!file.exists()) {
+                return ResponseHandler.generateResponse(
+                        "Profile picture file not found on server",
+                        HttpStatus.NOT_FOUND,
+                        null
+                );
+            }
+
+            Path path = file.toPath();
+            byte[] fileBytes = Files.readAllBytes(path);
+            String mimeType = Files.probeContentType(path);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(mimeType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getName() + "\"")
+                    .body(fileBytes);
+
+        } catch (Exception e) {
+            return ResponseHandler.generateResponse(
+                    "An error occurred while downloading profile picture: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    null
+            );
+        }
+    }
+
+    private boolean checkFileIsImage(String filename) {
+        return (filename != null && isImageFile(filename));
+    }
+
+    private boolean isImageFile(String fileName) {
+        String lowerCaseFileName = fileName.toLowerCase();
+        return lowerCaseFileName.endsWith(".jpg") || lowerCaseFileName.endsWith(".jpeg") || lowerCaseFileName.endsWith(".png");
+    }
 
     //Age calculation in days method
     private long calculateAgeInDays(Date birthday) {
@@ -200,6 +337,4 @@ public class EmployeeService implements EmployeeServiceImpl {
         return Period.between(birthDate, currentDate).getDays() +
                 Period.between(birthDate, currentDate).getYears() * 365L;
     }
-
-
 }

@@ -5,6 +5,7 @@ import com.emp.employee_management_system.Services.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("api/v1/employee")
@@ -38,4 +39,13 @@ public class EmployeeController {
         return employeeService.updateEmployee(id,employeeDto);
     }
 
+    @PostMapping("/uploadProfilePic/{id}")
+    ResponseEntity<Object> deleteEmployee(@PathVariable Long id, @RequestParam("profileImage") MultipartFile profileImage) {
+        return employeeService.uploadProfilePicture(id,profileImage);
+    }
+
+    @GetMapping("/downloadProfilePic/{id}")
+    ResponseEntity<Object> downloadProfilePic(@PathVariable Long id) {
+        return employeeService.downloadProfilePicture(id);
+    }
 }
