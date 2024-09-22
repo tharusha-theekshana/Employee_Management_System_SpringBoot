@@ -230,6 +230,7 @@ public class EmployeeService implements EmployeeServiceImpl {
                 );
             }
 
+            //Get project path & create profile pic upload path
             Path uploadsDir = Paths.get(System.getProperty("user.dir"), "uploads");
             System.out.println("Uploads directory: " + uploadsDir.toAbsolutePath()); // Print uploads directory
             if (!Files.exists(uploadsDir)) {
@@ -247,10 +248,10 @@ public class EmployeeService implements EmployeeServiceImpl {
             String fileExtension = originalFileName.substring(originalFileName.lastIndexOf('.'));
 
             // Create a new file name
-            String newFileName = id + "_" + existingEmployee.get().getFirstName() + "_" + existingEmployee.get().getLastName() + fileExtension;
+            String newFileName = id + "_" + existingEmployee.get().getFirstName() + "_" + existingEmployee.get().getLastName() + "_profilePic"+ fileExtension;
 
             // Save the new profile picture
-            String filePath = uploadsDir.resolve(newFileName).toString(); // Use resolved path
+            String filePath = uploadsDir.resolve(newFileName).toString();
             File dest = new File(filePath);
             file.transferTo(dest);
 
@@ -310,7 +311,7 @@ public class EmployeeService implements EmployeeServiceImpl {
 
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(mimeType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getName() + "\"")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "File name : " + file.getName())
                     .body(fileBytes);
 
         } catch (Exception e) {
