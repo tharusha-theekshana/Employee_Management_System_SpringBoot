@@ -19,10 +19,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class UserService implements UserServiceImpl {
@@ -115,10 +112,14 @@ public class UserService implements UserServiceImpl {
 
             var jwtToken = jwtService.generateToken(userDto);
 
+            HashMap<String, Object> responseDate = new HashMap<>();
+            responseDate.put("user", userDto);
+            responseDate.put("token", jwtToken);
+
             return ResponseHandler.generateResponse(
                     "User login successfully!",
                     HttpStatus.OK,
-                    jwtToken
+                    responseDate
             );
         } catch (BadCredentialsException e) {
                 return ResponseHandler.generateResponse(
